@@ -21,7 +21,8 @@ pub enum Expr {
 }
 
 impl Expr {
-    // Printy Print an Expr
+    // Pretty Print an Expr
+    // TODO: Implement this show using visitor instead of this garbage.
     pub fn show(expr: Expr) -> String {
         // Match expr, as we require different steps to generate a string depending on the type
         match expr {
@@ -56,4 +57,20 @@ impl Expr {
             }
         }
     }
+}
+
+pub trait ExprVisitor<T> {
+    fn visit(&mut self, expr: Expr) -> T {
+        match expr {
+            Expr::Binary {left, operator, right } => self.visit_binary(left, operator, right),
+            Expr::Grouping {expression} => self.visit_grouping(expression),
+            Expr::Literal {value} => self.visit_literal(value),
+            Expr::Unary {operator, right} => self.visit_unary(operator, right),
+        }
+    }
+
+    fn visit_binary(&mut self, left: Box<Expr>, operator: Token, right: Box<Expr>) -> T;
+    fn visit_grouping(&mut self, expression: Box<Expr>) -> T;
+    fn visit_literal(&mut self, value: Literal) -> T;
+    fn visit_unary(&mut self, operator: Token, right: Box<Expr>) -> T;
 }
