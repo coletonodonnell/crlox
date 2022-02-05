@@ -8,6 +8,7 @@ mod token;
 mod scanner;
 mod expression;
 mod parser;
+mod interpreter;
 
 #[derive(Default, Copy, Clone)]
 pub struct Lox {
