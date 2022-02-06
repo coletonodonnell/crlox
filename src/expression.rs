@@ -73,4 +73,5 @@ pub trait ExprVisitor<T> {
     fn visit_grouping(&mut self, expression: Box<Expr>) -> T;
     fn visit_literal(&mut self, value: Literal) -> T;
     fn visit_unary(&mut self, operator: Token, right: Box<Expr>) -> T;
+    fn interpret(&mut self, expression: Box<Expr>) -> String;
 }

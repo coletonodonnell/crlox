@@ -4,6 +4,7 @@ use crate::token::{Literal, Token, TokenType};
 pub struct Interpreter;
 
 impl Interpreter {
+    // Return trues (Nill and False are false, anything else true)
     fn is_truthy(literal: Literal) -> bool {
         match literal {
             Literal::Nill => return false,
@@ -13,6 +14,7 @@ impl Interpreter {
         }
     }
     
+    // Check equality
     fn is_equal(left: Literal, right: Literal) -> bool {
         match (left, right) {
             (Literal::Nill, Literal::Nill) => true,
@@ -23,10 +25,29 @@ impl Interpreter {
             _ => false
         }
     }
+
+    // Convert literal to proper strings for display
+    fn stringify(literal: Literal) -> String {
+        match literal {
+            Literal::Nill => return String::from("nill"),
+            Literal::Num(a) => {
+                let a = a.to_string();
+                if a.ends_with(".0") {
+                    return a[..a.len() - 2].to_string()
+                } else {
+                    return a
+                }
+            }
+            _ => {
+                return literal.to_string()
+            }
+        }
+    }
 }
 
-// See ExprVisitor at Expression for implementations
+// See ExprVisitor at Expression for implementation requirements
 impl ExprVisitor<Literal> for Interpreter {
+    // Evaluate a binary expression
     fn visit_binary(&mut self, left: Box<Expr>, operator: Token, right: Box<Expr>) -> Literal {
         let left = self.visit(*left);
         let right = self.visit(*right);
@@ -105,7 +126,7 @@ impl ExprVisitor<Literal> for Interpreter {
                 }
             },
             TokenType::BangEqual => {
-                if let (Literal::Num(a), Literal::Num(b)) = (left.clone(), right.clone()) {
+                if let (Literal::Num(_), Literal::Num(_)) = (left.clone(), right.clone()) {
                     match !Self::is_equal(left, right) {
                         true => return Literal::True,
                         false => return Literal::False
@@ -115,7 +136,7 @@ impl ExprVisitor<Literal> for Interpreter {
                 }
             }
             TokenType::EqualEqual => {
-                if let (Literal::Num(a), Literal::Num(b)) = (left.clone(), right.clone()) {
+                if let (Literal::Num(_), Literal::Num(_)) = (left.clone(), right.clone()) {
                     match Self::is_equal(left, right) {
                         true => return Literal::True,
                         false => return Literal::False
@@ -128,14 +149,17 @@ impl ExprVisitor<Literal> for Interpreter {
         }
     }
 
+    // Evaluate a grouping expression
     fn visit_grouping(&mut self, expression: Box<Expr>) -> Literal {
         return self.visit(*expression)
     }
 
+    // Evaluate a literal expression
     fn visit_literal(&mut self, value: Literal) -> Literal {
         return value;
     }
 
+    // Evaluate a unary expression
     fn visit_unary(&mut self, operator: Token, right: Box<Expr>) -> Literal {
         let right = self.visit(*right);
         match operator.token_type {
@@ -161,4 +185,9 @@ impl ExprVisitor<Literal> for Interpreter {
         }
     }
 
+    // Interpret an expression
+    fn interpret(&mut self, expression: Box<Expr>) -> String {
+        let value: Literal = Self::visit(self, *expression);
+        return Self::stringify(value);
+    }
 }
