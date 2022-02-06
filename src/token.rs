@@ -71,6 +71,19 @@ pub struct Token {
     pub line: u32,
 }
 
+// Display a Literal
+impl fmt::Display for Literal {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Str(a) => write!(f, "{:?}", a),
+            Self::Num(a) => write!(f, "{:?}", a),
+            Self::False => write!(f, "false"),
+            Self::True => write!(f, "true"),
+            Self::Nill => write!(f, "nill")
+        }
+    }
+}
+
 // Display a Token.
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -78,6 +91,7 @@ impl fmt::Display for Token {
     }
 }
 
+// Display a TokenType
 impl fmt::Display for TokenType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self)
