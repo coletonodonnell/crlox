@@ -1,6 +1,7 @@
 use crate::expression::{Expr, ExprVisitor};
 use crate::token::{Literal, Token, TokenType};
 
+#[derive(Default)]
 pub struct Interpreter;
 
 impl Interpreter {

@@ -1,14 +1,15 @@
 use std::env;
 use std::fs;
 use text_io::read;
+mod interpreter;
 use crate::token::{Token, TokenType};
 use crate::parser::{Parser};
 use crate::expression::{Expr};
+use crate::interpreter as interpret;
 mod token;
 mod scanner;
 mod expression;
 mod parser;
-mod interpreter;
 
 #[derive(Default, Copy, Clone)]
 pub struct Lox {
@@ -77,15 +78,14 @@ impl Lox {
         }
         let mut parser: Parser = Parser::parser_builder(tokens, self);
         let expressions: Option<Expr> = parser.parse();
-
-        match expressions {
-            Some(x) => {
-                println!("{}", Expr::show(x));
-            }
-            None => {
-                return;
-            }
-        }
+        // match expressions {
+        //     Some(x) => {
+        //         println!("{}", Expr::show(x));
+        //     }
+        //     None => {
+        //         return;
+        //     }
+        // }
     }
 }
 
