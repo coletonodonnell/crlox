@@ -1,4 +1,3 @@
-
 use crate::token::{Token, Literal};
 
 #[derive(Clone)]
@@ -60,7 +59,7 @@ impl Expr {
 }
 
 pub trait ExprVisitor<T> {
-    fn visit(&mut self, expr: Expr) -> T {
+    fn visit(&mut self, expr: Expr) -> Option<T> {
         match expr {
             Expr::Binary {left, operator, right } => self.visit_binary(left, operator, right),
             Expr::Grouping {expression} => self.visit_grouping(expression),
@@ -69,9 +68,9 @@ pub trait ExprVisitor<T> {
         }
     }
 
-    fn visit_binary(&mut self, left: Box<Expr>, operator: Token, right: Box<Expr>) -> T;
-    fn visit_grouping(&mut self, expression: Box<Expr>) -> T;
-    fn visit_literal(&mut self, value: Literal) -> T;
-    fn visit_unary(&mut self, operator: Token, right: Box<Expr>) -> T;
+    fn visit_binary(&mut self, left: Box<Expr>, operator: Token, right: Box<Expr>) -> Option<T>;
+    fn visit_grouping(&mut self, expression: Box<Expr>) -> Option<T>;
+    fn visit_literal(&mut self, value: Literal) -> Option<T>;
+    fn visit_unary(&mut self, operator: Token, right: Box<Expr>) -> Option<T>;
     fn interpret(&mut self, expression: Box<Expr>) -> String;
 }
