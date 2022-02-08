@@ -100,7 +100,7 @@ impl Lox {
             Some(a) => {
                 println!("Parser: {:?}", Expr::show(a.clone()));
                 let mut inter: Interpreter = Interpreter::build_interpreter(self);
-                println!("Interpreter: {:?}", inter.interpret(Box::new(a)));
+                println!("Interpreter: {}", inter.interpret(Box::new(a)));
             },
             None => {
                 println!("No expressions parsed.")
