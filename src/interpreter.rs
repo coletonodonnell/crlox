@@ -19,7 +19,7 @@ impl Interpreter {
     }
 
     fn binary_error(&mut self, left: Literal, operator: Token, right: Literal) {
-        let message: String = format!("{:?} and {:?} must both be numbers...", left, right);
+        let message: String = format!("{:?} and {:?} must both be numbers", left, right);
         Self::error(self, operator, message);
     }
 
@@ -101,16 +101,35 @@ impl ExprVisitor<Literal> for Interpreter {
             },
 
             TokenType::Plus => {
-                if let (Literal::Num(a), Literal::Num(b)) = (left.clone(), right.clone()) {
-                    return Some(Literal::Num(a+b))
-                } else {
-                    Self::binary_error(self, left, operator, right);
-                    return None
+                match (left.clone(), right.clone()) {
+                    // String Concatenation 
+                    (Literal::Num(a), Literal::Str(b)) => {
+                        return Some(Literal::Str(format!("{}{}", a, b)))
+                    },
+                    (Literal::Str(b), Literal::Num(a)) => {
+                        return Some(Literal::Str(format!("{}{}", a, b)))
+                    },
+                    (Literal::Str(a), Literal::Str(b)) => {
+                        return Some(Literal::Str(format!("{}{}", a, b)))
+                    },
+                    // Actual Addition
+                    (Literal::Num(a), Literal::Num(b)) => {
+                        return Some(Literal::Num(a+b))
+                    },
+                    (a, b) => {
+                        Self::error(self, operator, format!("{} and {} must be either a String or a Num", a, b));
+                        return None
+                    }
                 }
             },
 
             TokenType::Slash => {
                 if let (Literal::Num(a), Literal::Num(b)) = (left.clone(), right.clone()) {
+                    // Check if we are dividing by 0
+                    if b == 0.0 {
+                        Self::error(self, operator, "Can't divide by 0".to_string());
+                        return None
+                    }
                     return Some(Literal::Num(a/b))
                 } else {
                     Self::binary_error(self, left, operator, right);
