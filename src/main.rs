@@ -2,18 +2,19 @@ use std::env;
 use std::fs;
 use text_io::read;
 mod interpreter;
-use crate::token::{Token, TokenType};
-use crate::parser::{Parser};
-use crate::expression::{Expr};
-use crate::interpreter as interpret;
 mod token;
 mod scanner;
 mod expression;
 mod parser;
+use self::token::{Token, TokenType};
+use self::parser::{Parser};
+use self::expression::{Expr, ExprVisitor};
+use self::interpreter::{Interpreter};
 
 #[derive(Default, Copy, Clone)]
 pub struct Lox {
     had_error: bool,
+    had_runtime_error: bool
 } 
 
 impl Lox {
@@ -41,6 +42,21 @@ impl Lox {
         }
     }
 
+    pub fn interpreter_error(&mut self, token: Token, message: &str) {
+        if !self.had_runtime_error {
+            self.had_runtime_error = true;
+        }
+
+        match token.token_type {
+            TokenType::Eof => {
+                Self::report(self, token.line, " at end", message)
+            }
+            _ => {
+                Self::report(self, token.line, &*format!(" at '{}'", token.lexeme), message);
+            }
+        }
+    }
+
     // Report the error as a formated error message
     fn report(&self, line: u32, where_is: &str, message: &str) {
         eprintln!("[line {}] Error{}: {}", line, where_is, message);
@@ -53,9 +69,10 @@ impl Lox {
 
         // Run the scanner 
         Self::run(self.clone(), data);
-        println!("end");
         if self.had_error {
-            std::process::exit(65); // Exit on error.
+            std::process::exit(65); // Exit on scanner/parser error.
+        } else if self.had_runtime_error {
+            std::process::exit(70); // Exit on interpreter error.
         }
     }
 
@@ -73,19 +90,22 @@ impl Lox {
     fn run(self, input: String) {
         let mut a: scanner::Scanner = scanner::scanner_builder(self, input);
         let tokens: Vec<token::Token> = a.scan_tokens();
+        println!("Scanner:");
         for i in tokens.clone() {
             println!("{}", i);
         }
         let mut parser: Parser = Parser::parser_builder(tokens, self);
         let expressions: Option<Expr> = parser.parse();
-        // match expressions {
-        //     Some(x) => {
-        //         println!("{}", Expr::show(x));
-        //     }
-        //     None => {
-        //         return;
-        //     }
-        // }
+        match expressions {
+            Some(a) => {
+                println!("Parser: {:?}", Expr::show(a.clone()));
+                let mut inter: Interpreter = Interpreter::build_interpreter(self);
+                println!("Interpreter: {:?}", inter.interpret(Box::new(a)));
+            },
+            None => {
+                println!("No expressions parsed.")
+            }
+        }
     }
 }
 
@@ -103,13 +123,13 @@ fn main() {
         let path = &args[1];
 
         // Declare a mutable instance of Lox 
-        let mut a = Lox{had_error: false};
+        let mut a = Lox{had_error: false, had_runtime_error: false};
 
         // Run the Lox File
         a.run_file(path);
     } else {
         // Declare a mutable instance of Lox
-        let mut a = Lox{had_error: false};
+        let mut a = Lox{had_error: false, had_runtime_error: false};
 
         // Run Lox as a Prompt
         a.run_prompt();
