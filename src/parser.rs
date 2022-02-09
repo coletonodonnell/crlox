@@ -1,5 +1,6 @@
 use crate::token::{Token, TokenType, Literal};
 use crate::expression::{Expr};
+use crate::stmt::Stmt;
 
 pub struct Parser {
     pub tokens: Vec<Token>,
@@ -177,6 +178,26 @@ impl Parser {
         return Self::equality(self);
     }
 
+    fn expression_statement(&mut self) -> Stmt {
+        let value: Expr = self.expression();
+        let _a: Result<Token, String> = self.consume(TokenType::Semicolon, "Expect ';' after value.".to_string());
+        return Stmt::Expression{ expression: value };
+    }
+
+    fn print_statement(&mut self) -> Stmt {
+        let value: Expr = self.expression();
+        let _a: Result<Token, String> = self.consume(TokenType::Semicolon, "Expect ';' after value.".to_string());
+        return Stmt::Print{ expression: value };
+    }
+
+    fn statement(&mut self) -> Stmt {
+        if self.match_type(vec![TokenType::Print]) {
+            return self.print_statement();
+        }
+
+        return self.expression_statement();
+    }
+
     pub fn parser_builder(tokens: Vec<Token>, instance: crate::Lox) -> Parser {
         return Parser {
             tokens: tokens,
@@ -185,12 +206,17 @@ impl Parser {
         }
     }
 
-    pub fn parse(&mut self) -> Option<Expr>{
-        let a: Expr = Self::expression(self);
+    pub fn parse(&mut self) -> Option<Vec<Stmt>>{
+        let mut statements: Vec<Stmt> = Vec::new();
+
+        while !self.is_end() {
+            statements.push(self.statement());
+        }
+
         if !self.instance.had_error {
-            return Some(a);
+            return Some(statements)
         } else {
-            return None;
+            return None
         }
     }
 }
