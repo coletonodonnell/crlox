@@ -6,10 +6,40 @@ mod token;
 mod scanner;
 mod expression;
 mod parser;
+mod stmt;
 use self::token::{Token, TokenType};
 use self::parser::{Parser};
-use self::expression::{Expr, ExprVisitor};
 use self::interpreter::{Interpreter};
+use self::stmt::Stmt;
+
+/* 
+Overview
+
+Program flow:
+Run from prompt or file -> Create Lox instance -> Scan and tokenize -> 
+Parse tokens and create expressions -> Interpret tokens and execute
+
+Scanner:
+A scanner consists of an input source, the source converted into chars, the tokens, as well as
+the position in the source. From here we go through and tokenize, finding certain key words,
+differentiating numbers and strings, etc. There is absolutely no processing being done to 
+simplify the expressions, all we are doing is finding out what the source is saying in an easier
+way.
+
+Parser:
+The parser turns these tokens into expressions. Tokens consist of the token type, the 
+lexeme (what it is in the source,) an optional literal, and the line the token appears on. An
+expression takes our token (or Literal) and then gives it context. The parser's goal is to take
+the relative tokens and determine context, such as equality, comparisons, grouping, statements, etc.
+
+Interpreter:
+Now that we have a set of expressions, we can now understand context. Mind you, throughout all these
+steps we have ruled out syntax errors and are now only left with run time errors. These errors are 
+anything that happen at run time, eg. when the program is already running. Because of how basic 
+Lox is, some type errors could be determined earlier. The interpreter takes these expressions and 
+simplifies, it actually does the operations. This means that the Interpreter is what makes Lox, Lox.
+It is the part that runs all our code we've scanned and parsed.
+*/
 
 #[derive(Default, Copy, Clone)]
 pub struct Lox {
@@ -18,7 +48,7 @@ pub struct Lox {
 } 
 
 impl Lox {
-    // Call error message
+    // Call error message for scanner
     pub fn scanner_error(&mut self, line: u32, message: &str) {
         if !self.had_error {
             self.had_error = true;
@@ -27,6 +57,7 @@ impl Lox {
         Self::report(self, line, "", message);
     }
 
+    // Call error message for parser
     pub fn parser_error(&mut self, token: Token, message: &str) {
         if !self.had_error {
             self.had_error = true;
@@ -42,6 +73,7 @@ impl Lox {
         }
     }
 
+    // Call error message for interpreter, also known as run time error.
     pub fn interpreter_error(&mut self, token: Token, message: &str) {
         if !self.had_runtime_error {
             self.had_runtime_error = true;
@@ -57,7 +89,7 @@ impl Lox {
         }
     }
 
-    // Report the error as a formated error message
+    // Report an error as a formated error message
     fn report(&self, line: u32, where_is: &str, message: &str) {
         eprintln!("[line {}] Error{}: {}", line, where_is, message);
     }
@@ -86,7 +118,7 @@ impl Lox {
         }
     }
 
-    // Run the scanner, 
+    // Run the scanner, debug statements included
     fn run(self, input: String) {
         let mut a: scanner::Scanner = scanner::scanner_builder(self, input);
         let tokens: Vec<token::Token> = a.scan_tokens();
@@ -95,19 +127,29 @@ impl Lox {
             println!("{}", i);
         }
         let mut parser: Parser = Parser::parser_builder(tokens, self);
-        let expressions: Option<Expr> = parser.parse();
-        match expressions {
+        let statements: Option<Vec<Stmt>> = parser.parse();
+        match statements {
             Some(a) => {
-                println!("Parser: {:?}", Expr::show(a.clone()));
                 let mut inter: Interpreter = Interpreter::build_interpreter(self);
-                println!("Interpreter: {}", inter.interpret(Box::new(a)));
-            },
+                inter.interpret(a);
+            }
             None => {
-                println!("No expressions parsed.")
+                return
             }
         }
     }
 }
+    //     match expressions {
+    //         Some(a) => {
+    //             println!("Parser: {:?}", Expr::show(a.clone()));
+    //             let mut inter: Interpreter = Interpreter::build_interpreter(self);
+    //             println!("Interpreter: {}", inter.interpret(Box::new(a)));
+    //         },
+    //         None => {
+    //             println!("No expressions parsed.")
+    //         }
+    //     }
+    // }
 
 fn main() {
     // Args, including initial command. If ran as binary, this should under normal circumstances 
