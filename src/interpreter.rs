@@ -1,5 +1,6 @@
 use crate::expression::{Expr, ExprVisitor};
 use crate::token::{Literal, Token, TokenType};
+use crate::stmt::{Stmt, StmtVisitor};
 
 pub struct Interpreter {
     instance: crate::Lox
@@ -46,26 +47,44 @@ impl Interpreter {
     }
 
     // Convert literal to proper strings for display
-    fn stringify(literal: Option<Literal>, expression: Box<Expr>) -> String {
+    fn stringify(literal: Literal) -> String {
         match literal {
-            Some(a) => {
-                match a {
-                    Literal::Nill => return String::from("nill"),
-                    Literal::Num(b) => {
-                        let b = b.to_string();
-                        if b.ends_with(".0") {
-                            return b[..b.len() - 2].to_string()
-                        } else {
-                            return b
-                        }
-                    }
-                    _ => {
-                        return a.to_string()
-                    }
+            Literal::Nill => return String::from("nill"),
+            Literal::Num(a) => {
+                let a = a.to_string();
+                if a.ends_with(".0") {
+                    return a[..a.len() - 2].to_string()
+                } else {
+                    return a
                 }
             }
+            _ => {
+                return literal.to_string()
+            }
+        }
+    }
+
+    // Interpret an expression
+    pub fn interpret(&mut self, statements: Vec<Stmt>) {
+        for statement in statements {
+            Self::execute(self, statement)
+        }
+    }
+}
+
+impl StmtVisitor<()> for Interpreter {
+    fn visit_expression(&mut self, expression: Expr) {
+        Self::visit(self, expression);
+    }
+
+    fn visit_print(&mut self, expression: Expr) {
+        let value: Option<Literal> = Self::visit(self, expression);
+        match value {
+            Some(a) => {
+                println!("{}", Self::stringify(a))
+            }
             None => {
-                Expr::show(*expression)
+                return
             }
         }
     }
@@ -91,6 +110,7 @@ impl ExprVisitor<Literal> for Interpreter {
         }
 
         match operator.token_type {
+            // Subtraction
             TokenType::Minus => {
                 if let (Literal::Num(a), Literal::Num(b)) = (left.clone(), right.clone()) {
                     return Some(Literal::Num(a-b))
@@ -100,9 +120,10 @@ impl ExprVisitor<Literal> for Interpreter {
                 }
             },
 
+            // Addition
             TokenType::Plus => {
                 match (left.clone(), right.clone()) {
-                    // String Concatenation 
+                    // String Concatenation (with and without numbers)
                     (Literal::Num(a), Literal::Str(b)) => {
                         return Some(Literal::Str(format!("{}{}", a, b)))
                     },
@@ -123,6 +144,7 @@ impl ExprVisitor<Literal> for Interpreter {
                 }
             },
 
+            // Division
             TokenType::Slash => {
                 if let (Literal::Num(a), Literal::Num(b)) = (left.clone(), right.clone()) {
                     // Check if we are dividing by 0
@@ -137,6 +159,7 @@ impl ExprVisitor<Literal> for Interpreter {
                 }
             },
 
+            // Multiplication
             TokenType::Star => {
                 if let (Literal::Num(a), Literal::Num(b)) = (left.clone(), right.clone()) {
                     return Some(Literal::Num(a*b))
@@ -146,6 +169,7 @@ impl ExprVisitor<Literal> for Interpreter {
                 }
             },
 
+            // Check if a is greater than b
             TokenType::Greater => {
                 if let (Literal::Num(a), Literal::Num(b)) = (left.clone(), right.clone()) {
                     if a > b {
@@ -159,6 +183,7 @@ impl ExprVisitor<Literal> for Interpreter {
                 }
             },
 
+            // Check if a is greater than or equal to b
             TokenType::GreaterEqual => {
                 if let (Literal::Num(a), Literal::Num(b)) = (left.clone(), right.clone()) {
                     if a >= b {
@@ -172,6 +197,7 @@ impl ExprVisitor<Literal> for Interpreter {
                 }
             },
 
+            // Check if a is less than b
             TokenType::Less => {
                 if let (Literal::Num(a), Literal::Num(b)) = (left.clone(), right.clone()) {
                     if a < b {
@@ -185,6 +211,7 @@ impl ExprVisitor<Literal> for Interpreter {
                 }
             },
 
+            // Check if a is less than or equal to b
             TokenType::LessEqual => {
                 if let (Literal::Num(a), Literal::Num(b)) = (left.clone(), right.clone()) {
                     if a <= b {
@@ -198,6 +225,7 @@ impl ExprVisitor<Literal> for Interpreter {
                 }
             },
 
+            // Check if a is not equal to b
             TokenType::BangEqual => {
                 if let (Literal::Num(_), Literal::Num(_)) = (left.clone(), right.clone()) {
                     match !Self::is_equal(left, right) {
@@ -210,6 +238,7 @@ impl ExprVisitor<Literal> for Interpreter {
                 }
             },
 
+            // Check if a is equal to b
             TokenType::EqualEqual => {
                 if let (Literal::Num(_), Literal::Num(_)) = (left.clone(), right.clone()) {
                     match Self::is_equal(left, right) {
@@ -273,11 +302,5 @@ impl ExprVisitor<Literal> for Interpreter {
                 return Some(Literal::Nill)
             }
         }
-    }
-
-    // Interpret an expression
-    fn interpret(&mut self, expression: Box<Expr>) -> String {
-        let value: Option<Literal> = Self::visit(self, *expression.clone());
-        return Self::stringify(value, expression);
     }
 }
