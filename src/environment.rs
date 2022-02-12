@@ -12,7 +12,7 @@ impl Environment {
         }
     }
 
-    fn get(&mut self, name: Token) -> Result<Literal, String> {
+    pub fn get(&mut self, name: Token) -> Result<Literal, String> {
         if self.values.contains_key(&name.lexeme) {
             return Ok(self.values.get(&name.lexeme).unwrap().clone())
         } else {

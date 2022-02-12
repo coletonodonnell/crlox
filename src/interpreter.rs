@@ -1,16 +1,19 @@
 use crate::expression::{Expr, ExprVisitor};
 use crate::token::{Literal, Token, TokenType};
 use crate::stmt::{Stmt, StmtVisitor};
+use crate::environment::Environment;
 
 pub struct Interpreter {
-    instance: crate::Lox
+    instance: crate::Lox,
+    environment: Environment
 }
 
 impl Interpreter {
     // Build an interpreter
     pub fn build_interpreter(instance: crate::Lox) -> Interpreter {
         Interpreter {
-            instance: instance
+            instance: instance,
+            environment: Environment::build_envrionment()
         }
     }
 
@@ -85,6 +88,22 @@ impl StmtVisitor<()> for Interpreter {
             }
             None => {
                 return
+            }
+        }
+    }
+
+    fn visit_var(&mut self, name: Token, right: Option<Expr>) {
+        let value: Option<Literal>;
+        match right {
+            Some(a) => {
+                value = self.visit(a);
+                match value {
+                    Some(b) => self.environment.define(name.lexeme, b),
+                    _ => {}
+                }
+            }
+            None => {
+                self.environment.define(name.lexeme, Literal::Nill)
             }
         }
     }
@@ -300,6 +319,16 @@ impl ExprVisitor<Literal> for Interpreter {
             // Else just return nill
             _ => {
                 return Some(Literal::Nill)
+            }
+        }
+    }
+
+    fn visit_variable(&mut self, token: Token) -> Option<Literal> {
+        match self.environment.get(token.clone()) {
+            Ok(a) => return Some(a),
+            Err(a) => {
+                self.error(token, a);
+                return None
             }
         }
     }
