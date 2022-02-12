@@ -7,6 +7,7 @@ mod scanner;
 mod expression;
 mod parser;
 mod stmt;
+mod environment;
 use self::token::{Token, TokenType};
 use self::parser::{Parser};
 use self::interpreter::{Interpreter};
