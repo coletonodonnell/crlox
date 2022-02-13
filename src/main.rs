@@ -28,16 +28,16 @@ simplify the expressions, all we are doing is finding out what the source is say
 way.
 
 Parser:
-The parser turns these tokens into expressions. Tokens consist of the token type, the 
+The parser turns these tokens into statements. Tokens consist of the token type, the 
 lexeme (what it is in the source,) an optional literal, and the line the token appears on. An
 expression takes our token (or Literal) and then gives it context. The parser's goal is to take
 the relative tokens and determine context, such as equality, comparisons, grouping, statements, etc.
 
 Interpreter:
-Now that we have a set of expressions, we can now understand context. Mind you, throughout all these
+Now that we have a set of statements, we can now understand context. Mind you, throughout all these
 steps we have ruled out syntax errors and are now only left with run time errors. These errors are 
 anything that happen at run time, eg. when the program is already running. Because of how basic 
-Lox is, some type errors could be determined earlier. The interpreter takes these expressions and 
+Lox is, some type errors could be determined earlier. The interpreter takes these statements and 
 simplifies, it actually does the operations. This means that the Interpreter is what makes Lox, Lox.
 It is the part that runs all our code we've scanned and parsed.
 */
@@ -140,17 +140,6 @@ impl Lox {
         }
     }
 }
-    //     match expressions {
-    //         Some(a) => {
-    //             println!("Parser: {:?}", Expr::show(a.clone()));
-    //             let mut inter: Interpreter = Interpreter::build_interpreter(self);
-    //             println!("Interpreter: {}", inter.interpret(Box::new(a)));
-    //         },
-    //         None => {
-    //             println!("No expressions parsed.")
-    //         }
-    //     }
-    // }
 
 fn main() {
     // Args, including initial command. If ran as binary, this should under normal circumstances 
