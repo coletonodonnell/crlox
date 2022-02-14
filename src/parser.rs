@@ -208,7 +208,20 @@ impl Parser {
     }
 
     fn synchronize(&mut self) {
-        todo!()
+        self.advance();
+
+        while !self.is_end() {
+            if !(self.previous().token_type == TokenType::Semicolon) {
+                match self.peek().token_type {
+                    TokenType::Class | TokenType::Fun | TokenType::Var | TokenType::For | TokenType::If | TokenType::While | TokenType::Print | TokenType::Return => {
+                        return;
+                    }
+                    _ => {}
+                }
+            } else {
+                return
+            }
+        }
     }
 
     fn var_declaration(&mut self) -> Option<Stmt> {
