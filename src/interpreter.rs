@@ -24,7 +24,7 @@ impl Interpreter {
 
     fn binary_error(&mut self, left: Literal, operator: Token, right: Literal) {
         let message: String = format!("{:?} and {:?} must both be numbers", left, right);
-        Self::error(self, operator, message);
+        self.error(operator, message);
     }
 
     // Return trues (Nill and False are false, anything else true)
@@ -70,18 +70,18 @@ impl Interpreter {
     // Interpret an expression
     pub fn interpret(&mut self, statements: Vec<Stmt>) {
         for statement in statements {
-            Self::execute(self, statement)
+            self.execute(statement)
         }
     }
 }
 
 impl StmtVisitor<()> for Interpreter {
     fn visit_expression(&mut self, expression: Expr) {
-        Self::visit(self, expression);
+        self.visit(expression);
     }
 
     fn visit_print(&mut self, expression: Expr) {
-        let value: Option<Literal> = Self::visit(self, expression);
+        let value: Option<Literal> = self.visit(expression);
         match value {
             Some(a) => {
                 println!("{}", Self::stringify(a))
@@ -134,7 +134,7 @@ impl ExprVisitor<Literal> for Interpreter {
                 if let (Literal::Num(a), Literal::Num(b)) = (left.clone(), right.clone()) {
                     return Some(Literal::Num(a-b))
                 } else {
-                    Self::binary_error(self, left, operator, right);
+                    self.binary_error(left, operator, right);
                     return None
                 }
             },
@@ -157,7 +157,7 @@ impl ExprVisitor<Literal> for Interpreter {
                         return Some(Literal::Num(a+b))
                     },
                     (a, b) => {
-                        Self::error(self, operator, format!("{} and {} must be either a String or a Num", a, b));
+                        self.error(operator, format!("{} and {} must be either a String or a Num", a, b));
                         return None
                     }
                 }
@@ -168,12 +168,12 @@ impl ExprVisitor<Literal> for Interpreter {
                 if let (Literal::Num(a), Literal::Num(b)) = (left.clone(), right.clone()) {
                     // Check if we are dividing by 0
                     if b == 0.0 {
-                        Self::error(self, operator, "Can't divide by 0".to_string());
+                        self.error(operator, "Can't divide by 0".to_string());
                         return None
                     }
                     return Some(Literal::Num(a/b))
                 } else {
-                    Self::binary_error(self, left, operator, right);
+                    self.binary_error(left, operator, right);
                     return None
                 }
             },
@@ -183,7 +183,7 @@ impl ExprVisitor<Literal> for Interpreter {
                 if let (Literal::Num(a), Literal::Num(b)) = (left.clone(), right.clone()) {
                     return Some(Literal::Num(a*b))
                 } else {
-                    Self::binary_error(self, left, operator, right);
+                    self.binary_error(left, operator, right);
                     return None
                 }
             },
@@ -197,7 +197,7 @@ impl ExprVisitor<Literal> for Interpreter {
                         return Some(Literal::False)
                     }
                 } else {
-                    Self::binary_error(self, left, operator, right);
+                    self.binary_error(left, operator, right);
                     return None
                 }
             },
@@ -211,7 +211,7 @@ impl ExprVisitor<Literal> for Interpreter {
                         return Some(Literal::False)
                     }
                 } else {
-                    Self::binary_error(self, left, operator, right);
+                    self.binary_error(left, operator, right);
                     return None
                 }
             },
@@ -225,7 +225,7 @@ impl ExprVisitor<Literal> for Interpreter {
                         return Some(Literal::False)
                     }
                 } else {
-                    Self::binary_error(self, left, operator, right);
+                    self.binary_error(left, operator, right);
                     return None
                 }
             },
@@ -239,7 +239,7 @@ impl ExprVisitor<Literal> for Interpreter {
                         return Some(Literal::False)
                     }
                 } else {
-                    Self::binary_error(self, left, operator, right);
+                    self.binary_error(left, operator, right);
                     return None
                 }
             },
@@ -252,7 +252,7 @@ impl ExprVisitor<Literal> for Interpreter {
                         false => return Some(Literal::False)
                     }
                 } else {
-                    Self::binary_error(self, left, operator, right);
+                    self.binary_error(left, operator, right);
                     return None
                 }
             },
@@ -265,7 +265,7 @@ impl ExprVisitor<Literal> for Interpreter {
                         false => return Some(Literal::False)
                     }
                 } else {
-                    Self::binary_error(self, left, operator, right);
+                    self.binary_error(left, operator, right);
                     return None
                 }
             },
@@ -303,7 +303,7 @@ impl ExprVisitor<Literal> for Interpreter {
                     Literal::Num(n) => return Some(Literal::Num(-n)),
                     _ => {
                         let message = format!("{:?} Must be a number...", right);
-                        Self::error(self, operator, message);
+                        self.error(operator, message);
                         return None
                     }
                 }
