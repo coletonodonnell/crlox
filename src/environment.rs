@@ -1,16 +1,19 @@
 use crate::token::{Literal, Token};
 use std::collections::HashMap;
 
+#[derive(Clone)]
 pub struct Environment {
     instance: crate::Lox,
-    values: HashMap<String, Literal>
+    values: HashMap<String, Literal>,
+    enclosing: Option<Box<Environment>>
 }
 
 impl Environment {
     pub fn build_envrionment(instance: crate::Lox) -> Environment {
         Environment {
             instance: instance,
-            values: HashMap::new()
+            values: HashMap::new(),
+            enclosing: None
         }
     }
 
@@ -22,6 +25,8 @@ impl Environment {
     pub fn get(&mut self, name: Token) -> Result<Literal, String> {
         if self.values.contains_key(&name.lexeme) {
             return Ok(self.values.get(&name.lexeme).unwrap().clone())
+        } else if self.enclosing.is_some() && self.enclosing.as_ref().unwrap().values.contains_key(&name.lexeme) { 
+            return self.enclosing.clone().unwrap().get(name)
         } else {
             return Err(format!("Undefined variable {}.", name.lexeme))
         }
@@ -34,6 +39,9 @@ impl Environment {
     pub fn assign(&mut self, name: Token, value: Literal) {
         if self.values.contains_key(&name.lexeme) {
             self.values.insert(name.lexeme, value);
+            return
+        } else if self.enclosing.is_some() && self.enclosing.as_ref().unwrap().values.contains_key(&name.lexeme) { 
+            self.enclosing.clone().unwrap().assign(name, value);
             return
         }
         

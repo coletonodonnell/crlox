@@ -34,9 +34,9 @@ impl Scanner {
     // What is ran 
     pub fn scan_tokens(&mut self) -> Vec<Token> {
         // While we aren't at the end of the file, set the start to the current and then scan the next token.
-        while !Self::is_end(&self) {
+        while !self.is_end() {
             self.start = self.current;
-            Self::scan_token(self);
+            self.scan_token();
         }
 
         // Push a token at the end that represents the end of the file.
@@ -46,90 +46,90 @@ impl Scanner {
     }
 
     fn scan_token(&mut self) {
-        let c: char = Self::advance(self);
+        let c: char = self.advance();
     
         // Match the next char with the following
         match c {
-            '(' => Self::add_token(self, TokenType::LParen, None::<Literal>),
-            ')' => Self::add_token(self, TokenType::RParen, None::<Literal>),
-            '{' => Self::add_token(self, TokenType::LBrace, None::<Literal>),
-            '}' => Self::add_token(self, TokenType::RBrace, None::<Literal>),
-            ',' => Self::add_token(self, TokenType::Comma, None::<Literal>),
-            '.' => Self::add_token(self, TokenType::Dot, None::<Literal>),
-            '-' => Self::add_token(self, TokenType::Minus, None::<Literal>),
-            '+' => Self::add_token(self, TokenType::Plus, None::<Literal>),
-            ':' => Self::add_token(self, TokenType::Colon, None::<Literal>),
-            ';' => Self::add_token(self, TokenType::Semicolon, None::<Literal>),
-            '*' => Self::add_token(self, TokenType::Star, None::<Literal>),
-            '?' => Self::add_token(self, TokenType::Question, None::<Literal>),
+            '(' => self.add_token(TokenType::LParen, None::<Literal>),
+            ')' => self.add_token(TokenType::RParen, None::<Literal>),
+            '{' => self.add_token(TokenType::LBrace, None::<Literal>),
+            '}' => self.add_token(TokenType::RBrace, None::<Literal>),
+            ',' => self.add_token(TokenType::Comma, None::<Literal>),
+            '.' => self.add_token(TokenType::Dot, None::<Literal>),
+            '-' => self.add_token(TokenType::Minus, None::<Literal>),
+            '+' => self.add_token(TokenType::Plus, None::<Literal>),
+            ':' => self.add_token(TokenType::Colon, None::<Literal>),
+            ';' => self.add_token(TokenType::Semicolon, None::<Literal>),
+            '*' => self.add_token(TokenType::Star, None::<Literal>),
+            '?' => self.add_token(TokenType::Question, None::<Literal>),
             '!' => {
-                if Self::find_next(self, '=') {
-                    Self::add_token(self, TokenType::BangEqual, None::<Literal>);
+                if self.find_next('=') {
+                    self.add_token(TokenType::BangEqual, None::<Literal>);
 
                 } else {
-                    Self::add_token(self, TokenType::Bang, None::<Literal>);
+                    self.add_token(TokenType::Bang, None::<Literal>);
                 }
             },
             '=' => {
-                if Self::find_next(self, '=') {
-                    Self::add_token(self, TokenType::EqualEqual, None::<Literal>);
+                if self.find_next('=') {
+                    self.add_token(TokenType::EqualEqual, None::<Literal>);
 
                 } else {
-                    Self::add_token(self, TokenType::Equal, None::<Literal>);
+                    self.add_token(TokenType::Equal, None::<Literal>);
                 }
             },
             '<' => {
-                if Self::find_next(self, '=') {
-                    Self::add_token(self, TokenType::LessEqual, None::<Literal>);
+                if self.find_next('=') {
+                    self.add_token(TokenType::LessEqual, None::<Literal>);
 
                 } else {
-                    Self::add_token(self, TokenType::Less, None::<Literal>);
+                    self.add_token(TokenType::Less, None::<Literal>);
                 }
             },
             '>' => {
-                if Self::find_next(self, '=') {
-                    Self::add_token(self, TokenType::GreaterEqual, None::<Literal>);
+                if self.find_next('=') {
+                    self.add_token(TokenType::GreaterEqual, None::<Literal>);
 
                 } else {
-                    Self::add_token(self, TokenType::Greater, None::<Literal>);
+                    self.add_token(TokenType::Greater, None::<Literal>);
                 }
             },
             '/' => {
                 // One line comment?
-                if Self::find_next(self, '/') {
-                    while Self::peak(&self) != '\n' && !Self::is_end(&self) {
-                        Self::advance(self);
+                if self.find_next('/') {
+                    while self.peak() != '\n' && !self.is_end() {
+                        self.advance();
                     } 
 
                 // Block comment?
-                } else if Self::find_next(self, '*') {
+                } else if self.find_next('*') {
                     // 
                     loop {
-                        Self::advance(self);
+                        self.advance();
 
-                        if Self::peak(&self) == '\n' {
+                        if self.peak() == '\n' {
                             self.line = self.line + 1;
                         }
 
-                        if Self::peak(&self) == '*' {
-                            Self::advance(self);
-                            if Self::peak(&self) == '/' {
-                                Self::advance(self);
+                        if self.peak() == '*' {
+                            self.advance();
+                            if self.peak() == '/' {
+                                self.advance();
                                 break;
                             }
                         }
 
-                        if Self::is_end(self) {
+                        if self.is_end() {
                             self.instance.scanner_error(self.line, "Undetermined Block Comment");
                         }
                     }
                     
                 // Div?
                 } else {
-                    Self::add_token(self, TokenType::Slash, None::<Literal>);
+                    self.add_token(TokenType::Slash, None::<Literal>);
                 }
             },
-            '"' => Self::string(self),
+            '"' => self.string(),
             ' ' => {},
             '\r' => {},
             '\t' => {},
@@ -138,11 +138,11 @@ impl Scanner {
                 // If it is a digit
                 if Self::is_digit(c) {
                     // Declare it as a number
-                    Self::number(self);
+                    self.number();
                 // If it is a letter
                 } else if Self::is_alpha(c) {
                     // Declare it as a letter
-                    Self::identifier(self);
+                    self.identifier();
                 // Grab the instance of Scanner and then declare a error of "Unexpected character."
                 } else {
                     self.instance.scanner_error(self.line, "Unexpected character.");
@@ -170,7 +170,7 @@ impl Scanner {
     }
     
     fn find_next(&mut self, expected: char) -> bool {
-        if Self::is_end(&self) {
+        if self.is_end() {
             return false;
         }
 
@@ -184,7 +184,7 @@ impl Scanner {
 
     // This finds the next, or peaks, the next character
     fn peak(&self) -> char {
-        if Self::is_end(&self) {
+        if self.is_end() {
             return '\0';
         } else {
             return self.source_chars[self.current as usize];
@@ -193,41 +193,41 @@ impl Scanner {
 
     fn string(&mut self) {
         // While we are before the closing " and we're not at the end, look for new lines and advance
-        while Self::peak(&self) != '"' && !Self::is_end(&self) {
-            if Self::peak(&self) == '\n' {
+        while self.peak() != '"' && !self.is_end() {
+            if self.peak() == '\n' {
                 self.line = self.line + 1;
             }
-            Self::advance(self);
+            self.advance();
         }
 
         // Is this the end? That isn't good, please error.
-        if Self::is_end(&self) {
+        if self.is_end() {
             self.instance.scanner_error(self.line, "Undetermined String");
             return;
         }
 
-        Self::advance(self);
+        self.advance();
         let value: String = self.source.get((self.start + 1) as usize..(self.current -1) as usize).unwrap().to_string();
-        Self::add_token(self, TokenType::String, Some(Literal::Str(value)));
+        self.add_token(TokenType::String, Some(Literal::Str(value)));
     }
 
     fn number(&mut self) {
         // While it is a number, continue
-        while Self::is_digit(Self::peak(self)) {
-            Self::advance(self);
+        while Self::is_digit(self.peak()) {
+            self.advance();
         }
 
         // If there is a decimal and a number following, advance and continue.
-        if Self::peak(self) == '.' && Self::is_digit(Self::peak_next(self)) {
-            Self::advance(self);
+        if self.peak() == '.' && Self::is_digit(self.peak_next()) {
+            self.advance();
 
-            while Self::is_digit(Self::peak(self)) {
-                Self::advance(self);
+            while Self::is_digit(self.peak()) {
+                self.advance();
             }
         }
 
         let num: String = self.source.get(self.start as usize..self.current as usize).unwrap().to_string();
-        Self::add_token(self, TokenType::Num, Some(Literal::Num(num.parse().unwrap())));
+        self.add_token(TokenType::Num, Some(Literal::Num(num.parse().unwrap())));
     }
 
     fn is_digit(c: char) -> bool {
@@ -245,8 +245,8 @@ impl Scanner {
 
     fn identifier(&mut self) {
         // While the chars are alphanumerical
-        while Self::is_alpha_numeric(Self::peak(self)) {
-            Self::advance(self);
+        while Self::is_alpha_numeric(self.peak()) {
+            self.advance();
         }
 
         // Setup a hashmap of keywords
@@ -285,7 +285,7 @@ impl Scanner {
         }
 
         // Add the token.
-        Self::add_token(self, token_type.clone(), None);
+        self.add_token(token_type.clone(), None);
     }
 
     // Is this Char an Alpha (or _)
