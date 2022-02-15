@@ -146,7 +146,7 @@ impl ExprVisitor<Literal> for Interpreter {
                     (Literal::Num(a), Literal::Str(b)) => {
                         return Some(Literal::Str(format!("{}{}", a, b)))
                     },
-                    (Literal::Str(b), Literal::Num(a)) => {
+                    (Literal::Str(a), Literal::Num(b)) => {
                         return Some(Literal::Str(format!("{}{}", a, b)))
                     },
                     (Literal::Str(a), Literal::Str(b)) => {
