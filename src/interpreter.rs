@@ -13,7 +13,7 @@ impl Interpreter {
     pub fn build_interpreter(instance: crate::Lox) -> Interpreter {
         Interpreter {
             instance: instance,
-            environment: Environment::build_envrionment()
+            environment: Environment::build_envrionment(instance)
         }
     }
 
@@ -331,5 +331,11 @@ impl ExprVisitor<Literal> for Interpreter {
                 return None
             }
         }
+    }
+
+    fn visit_assignment(&mut self, name: Token, value: Box<Expr>) -> Option<Literal> {
+        let literal = self.visit(*value);
+        self.environment.assign(name, literal.clone().unwrap());
+        return literal
     }
 }
