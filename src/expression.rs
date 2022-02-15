@@ -19,6 +19,10 @@ pub enum Expr {
     },
     Variable {
         token: Token
+    },
+    Assign {
+        name: Token,
+        value: Box<Expr>
     }
 }
 
@@ -30,6 +34,7 @@ pub trait ExprVisitor<T> {
             Expr::Literal {value} => self.visit_literal(value),
             Expr::Unary {operator, right} => self.visit_unary(operator, right),
             Expr::Variable {token} => self.visit_variable(token),
+            Expr::Assign {name, value} => self.visit_assignment(name, value)
         }
     }
 
@@ -38,4 +43,5 @@ pub trait ExprVisitor<T> {
     fn visit_literal(&mut self, value: Literal) -> Option<T>;
     fn visit_unary(&mut self, operator: Token, right: Box<Expr>) -> Option<T>;
     fn visit_variable(&mut self, token: Token) -> Option<T>;
+    fn visit_assignment(&mut self, name: Token, value: Box<Expr>) -> Option<T>;
 }
