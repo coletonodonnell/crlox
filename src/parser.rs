@@ -220,9 +220,25 @@ impl Parser {
         return Stmt::Print{ expression: value };
     }
 
+    fn block(&mut self) -> Vec<Stmt>{
+        let mut statements: Vec<Stmt> = Vec::new();
+        
+        while !(self.check(TokenType::RBrace)) && !self.is_end() {
+            if let Some(a) = self.declaration() {
+                statements.push(a);
+            } 
+        }
+
+        self.consume(TokenType::RBrace, "Expect '}' after block.".to_string());
+        return statements;
+    }
+
     fn statement(&mut self) -> Stmt {
         if self.match_type(vec![TokenType::Print]) {
             return self.print_statement();
+        }
+        if self.match_type(vec![TokenType::LBrace]) {
+            return Stmt::Block{statements: self.block()};
         }
 
         return self.expression_statement();

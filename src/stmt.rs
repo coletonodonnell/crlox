@@ -11,19 +11,24 @@ pub enum Stmt {
     Var {
         name: Token,
         right: Option<Expr>,
+    },
+    Block {
+        statements: Vec<Stmt>
     }
 }
 
-pub trait StmtVisitor<T> {
-    fn execute(&mut self, stmt: Stmt) -> T {
+pub trait StmtVisitor<> {
+    fn execute(&mut self, stmt: Stmt) {
         match stmt {
             Stmt::Expression {expression: a} => self.visit_expression(a),
             Stmt::Print {expression: a} => self.visit_print(a),
-            Stmt::Var {name: a, right: b} => self.visit_var(a, b)
+            Stmt::Var {name: a, right: b} => self.visit_var(a, b),
+            Stmt::Block {statements: a} => self.visit_block(a)
         }
     }
 
-    fn visit_expression(&mut self, expression: Expr) -> T;
-    fn visit_print(&mut self, expression: Expr) -> T;
-    fn visit_var(&mut self, name: Token, right: Option<Expr>) -> T;
+    fn visit_expression(&mut self, expression: Expr);
+    fn visit_print(&mut self, expression: Expr);
+    fn visit_var(&mut self, name: Token, right: Option<Expr>);
+    fn visit_block(&mut self, statements: Vec<Stmt>);
 }
