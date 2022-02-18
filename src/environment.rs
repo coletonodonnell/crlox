@@ -9,11 +9,11 @@ pub struct Environment {
 }
 
 impl Environment {
-    pub fn build_envrionment(instance: crate::Lox) -> Environment {
-        Environment {
+    pub fn build_environment(instance: crate::Lox, enclosing: Option<Box<Self>>) -> Self {
+        Self {
             instance: instance,
             values: HashMap::new(),
-            enclosing: None
+            enclosing: enclosing
         }
     }
 
@@ -25,7 +25,8 @@ impl Environment {
     pub fn get(&mut self, name: Token) -> Result<Literal, String> {
         if self.values.contains_key(&name.lexeme) {
             return Ok(self.values.get(&name.lexeme).unwrap().clone())
-        } else if self.enclosing.is_some() && self.enclosing.as_ref().unwrap().values.contains_key(&name.lexeme) { 
+        } else if self.enclosing.is_some() {
+
             return self.enclosing.clone().unwrap().get(name)
         } else {
             return Err(format!("Undefined variable {}.", name.lexeme))
@@ -40,7 +41,7 @@ impl Environment {
         if self.values.contains_key(&name.lexeme) {
             self.values.insert(name.lexeme, value);
             return
-        } else if self.enclosing.is_some() && self.enclosing.as_ref().unwrap().values.contains_key(&name.lexeme) { 
+        } else if self.enclosing.is_some() { 
             self.enclosing.clone().unwrap().assign(name, value);
             return
         }

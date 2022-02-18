@@ -13,7 +13,7 @@ impl Interpreter {
     pub fn build_interpreter(instance: crate::Lox) -> Interpreter {
         Interpreter {
             instance: instance,
-            environment: Environment::build_environment(instance)
+            environment: Environment::build_environment(instance, None)
         }
     }
 
@@ -120,7 +120,7 @@ impl StmtVisitor<> for Interpreter {
     }
 
     fn visit_block(&mut self, statements: Vec<Stmt>) {
-        self.execute_block(statements, Environment::build_environment(self.instance));
+        self.execute_block(statements, Environment::build_environment(self.instance, Some(Box::new(self.environment.clone()))));
         return
     }
 }
