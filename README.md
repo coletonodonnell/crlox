@@ -6,7 +6,7 @@ Chapters Implemented:
 - [X] Representing Code
 - [X] Parsing Expressions
 - [X] Evaluating Expressions
-- [ ] Statements and State
+- [X] Statements and State
 - [ ] Control Flow
 - [ ] Functions
 - [ ] Resolving and Binding

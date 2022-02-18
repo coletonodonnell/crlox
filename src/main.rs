@@ -123,10 +123,10 @@ impl Lox {
     fn run(self, input: String) {
         let mut a: scanner::Scanner = scanner::scanner_builder(self, input);
         let tokens: Vec<token::Token> = a.scan_tokens();
-        println!("Scanner:");
-        for i in tokens.clone() {
-            println!("{}", i);
-        }
+        // println!("Scanner:");
+        // for i in tokens.clone() {
+        //     println!("{}", i);
+        // }
         let mut parser: Parser = Parser::parser_builder(tokens, self);
         let statements: Option<Vec<Stmt>> = parser.parse();
         match statements {
