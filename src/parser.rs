@@ -223,7 +223,7 @@ impl Parser {
     fn block(&mut self) -> Vec<Stmt>{
         let mut statements: Vec<Stmt> = Vec::new();
         
-        while !(self.check(TokenType::RBrace)) && !self.is_end() {
+        while !self.check(TokenType::RBrace) && !self.is_end() {
             if let Some(a) = self.declaration() {
                 statements.push(a);
             } 
@@ -265,13 +265,13 @@ impl Parser {
         let name: Option<Token> = self.consume(TokenType::Id, "Expect variable name.".to_string());
         match name {
             Some(a) => {
-                let mut initalizer: Option<Expr> = None;
+                let mut initializer: Option<Expr> = None;
                 if self.match_type(vec![TokenType::Equal]) {
-                    initalizer = Some(self.expression());
+                    initializer = Some(self.expression());
                 }
 
                 let _a: Option<Token> = self.consume(TokenType::Semicolon, "Expect ';' after variable decleration.".to_string());
-                return Some(Stmt::Var{name: a, right: initalizer})
+                return Some(Stmt::Var{name: a, right: initializer})
             },
             None => return None
         }

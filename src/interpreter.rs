@@ -13,7 +13,14 @@ impl Interpreter {
     pub fn build_interpreter(instance: crate::Lox) -> Interpreter {
         Interpreter {
             instance: instance,
-            environment: Environment::build_envrionment(instance)
+            environment: Environment::build_environment(instance)
+        }
+    }
+
+    // Interpret an expression
+    pub fn interpret(&mut self, statements: Vec<Stmt>) {
+        for statement in statements {
+            self.execute(statement)
         }
     }
 
@@ -67,15 +74,19 @@ impl Interpreter {
         }
     }
 
-    // Interpret an expression
-    pub fn interpret(&mut self, statements: Vec<Stmt>) {
+    fn execute_block(&mut self, statements: Vec<Stmt>, environment: Environment) {
+        let previous: Environment = self.environment.clone();
+        self.environment = environment;
+
         for statement in statements {
-            self.execute(statement)
+            self.execute(statement);
         }
+
+        self.environment = previous;
     }
 }
 
-impl StmtVisitor<()> for Interpreter {
+impl StmtVisitor<> for Interpreter {
     fn visit_expression(&mut self, expression: Expr) {
         self.visit(expression);
     }
@@ -106,6 +117,11 @@ impl StmtVisitor<()> for Interpreter {
                 self.environment.define(name.lexeme, Literal::Nill)
             }
         }
+    }
+
+    fn visit_block(&mut self, statements: Vec<Stmt>) {
+        self.execute_block(statements, Environment::build_environment(self.instance));
+        return
     }
 }
 
