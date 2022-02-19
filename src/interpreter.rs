@@ -123,8 +123,16 @@ impl StmtVisitor<> for Interpreter {
         self.execute_block(statements, Environment::build_environment(self.instance, Some(Box::new(self.environment.clone()))));
         return
     }
-}
 
+    fn visit_if(&mut self, condition: Expr, then_branch: Box<Stmt>, else_branch: Option<Box<Stmt>>) {
+        let condition_visited: Option<Literal> = self.visit(condition);
+        if condition_visited.is_some() && Self::is_truthy(condition_visited.unwrap()) {
+            self.execute(*then_branch);
+        } else if else_branch.is_some() {
+            self.execute(*else_branch.unwrap());
+        }
+    }
+}
 // See ExprVisitor at Expression for implementation requirements
 impl ExprVisitor<Literal> for Interpreter {
     // Evaluate a binary expression
@@ -353,5 +361,26 @@ impl ExprVisitor<Literal> for Interpreter {
         let literal = self.visit(*value);
         self.environment.assign(name, literal.clone().unwrap());
         return literal
+    }
+
+    fn visit_logical(&mut self, left: Box<Expr>, operator: Token, right: Box<Expr>) -> Option<Literal> {
+        let left: Option<Literal> = self.visit(*left);
+
+        if matches!(operator.token_type, TokenType::Or) {
+            if left.is_some() && Self::is_truthy(left.clone().unwrap()) {
+                return left;
+            }
+        } else {
+            if left.is_some() && !Self::is_truthy(left.clone().unwrap()) {
+                return left;
+            }
+        }
+
+        let right: Option<Literal> = self.visit(*right);
+        if right.is_some() {
+            return right
+        } else {
+            return None;
+        }
     }
 }

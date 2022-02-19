@@ -23,6 +23,11 @@ pub enum Expr {
     Assign {
         name: Token,
         value: Box<Expr>
+    },
+    Logical {
+        left: Box<Expr>,
+        operator: Token,
+        right: Box<Expr>
     }
 }
 
@@ -34,7 +39,8 @@ pub trait ExprVisitor<T> {
             Expr::Literal {value} => self.visit_literal(value),
             Expr::Unary {operator, right} => self.visit_unary(operator, right),
             Expr::Variable {token} => self.visit_variable(token),
-            Expr::Assign {name, value} => self.visit_assignment(name, value)
+            Expr::Assign {name, value} => self.visit_assignment(name, value),
+            Expr::Logical {left, operator, right} => self.visit_logical(left, operator, right)
         }
     }
 
@@ -44,4 +50,5 @@ pub trait ExprVisitor<T> {
     fn visit_unary(&mut self, operator: Token, right: Box<Expr>) -> Option<T>;
     fn visit_variable(&mut self, token: Token) -> Option<T>;
     fn visit_assignment(&mut self, name: Token, value: Box<Expr>) -> Option<T>;
+    fn visit_logical(&mut self, left: Box<Expr>, operator: Token, right: Box<Expr>) -> Option<T>;
 }

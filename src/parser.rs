@@ -182,9 +182,35 @@ impl Parser {
         return expr;
     }
 
-    // assignment → equality | equality
+    // logic_and → equality ( "and" equality )*
+    fn logic_and(&mut self) -> Expr {
+        let mut expr: Expr = self.equality();
+
+        while self.match_type(vec![TokenType::And]) {
+            let operator: Token = self.previous();
+            let right: Expr = self.equality();
+            expr = Expr::Logical{ left: Box::new(expr), operator: operator, right: Box::new(right) };
+        }
+
+        return expr;
+    }
+
+    // logic_or → logic_and ( "or" logic_and )*
+    fn logic_or(&mut self) -> Expr {
+        let mut expr: Expr = self.logic_and();
+
+        while self.match_type(vec![TokenType::Or]) {
+            let operator: Token = self.previous();
+            let right: Expr = self.logic_and();
+            expr = Expr::Logical{ left: Box::new(expr), operator: operator, right: Box::new(right) };
+        }
+
+        return expr;
+    }
+
+    // assignment → IDENTIFIER "=" assignment | logic_or
     fn assignment(&mut self) -> Expr {
-        let expr: Expr = self.equality();
+        let expr: Expr = self.logic_or();
 
         if self.match_type(vec![TokenType::Equal]) {
             let equals: Token = self.previous();
@@ -214,6 +240,21 @@ impl Parser {
         return Stmt::Expression{ expression: value };
     }
 
+    fn if_statement(&mut self) -> Stmt {
+        let _ = self.consume(TokenType::LParen, "Expect '(' after 'if'.".to_string());
+        let condition: Expr = self.expression();
+        let _ = self.consume(TokenType::RParen, "Expect ')' after if condition".to_string());
+
+        let then_branch: Stmt = self.statement();
+        let mut else_branch: Option<Box<Stmt>> = None;
+
+        if self.match_type(vec![TokenType::Else]) {
+            else_branch = Some(Box::new(self.statement()));
+        }
+
+        return Stmt::If {condition: condition, then_branch: Box::new(then_branch), else_branch: else_branch}
+    }
+
     fn print_statement(&mut self) -> Stmt {
         let value: Expr = self.expression();
         let _a: Option<Token> = self.consume(TokenType::Semicolon, "Expect ';' after value.".to_string());
@@ -226,7 +267,7 @@ impl Parser {
         while !self.check(TokenType::RBrace) && !self.is_end() {
             if let Some(a) = self.declaration() {
                 statements.push(a);
-            } 
+            }
         }
 
         self.consume(TokenType::RBrace, "Expect '}' after block.".to_string());
@@ -234,6 +275,9 @@ impl Parser {
     }
 
     fn statement(&mut self) -> Stmt {
+        if self.match_type(vec![TokenType::If]) {
+            return self.if_statement();
+        }
         if self.match_type(vec![TokenType::Print]) {
             return self.print_statement();
         }
@@ -270,7 +314,7 @@ impl Parser {
                     initializer = Some(self.expression());
                 }
 
-                let _a: Option<Token> = self.consume(TokenType::Semicolon, "Expect ';' after variable decleration.".to_string());
+                let _a: Option<Token> = self.consume(TokenType::Semicolon, "Expect ';' after variable declaration.".to_string());
                 return Some(Stmt::Var{name: a, right: initializer})
             },
             None => return None
