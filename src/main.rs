@@ -42,7 +42,7 @@ simplifies, it actually does the operations. This means that the Interpreter is 
 It is the part that runs all our code we've scanned and parsed.
 */
 
-#[derive(Default, Copy, Clone)]
+#[derive(Default, Copy, Clone, Debug)]
 pub struct Lox {
     had_error: bool,
     had_runtime_error: bool
@@ -90,7 +90,7 @@ impl Lox {
         }
     }
 
-    // Report an error as a formated error message
+    // Report an error as a formatted error message
     fn report(&self, line: u32, where_is: &str, message: &str) {
         eprintln!("[line {}] Error{}: {}", line, where_is, message);
     }
