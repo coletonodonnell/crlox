@@ -10,3 +10,6 @@
 
 # ignore vscode
 /.vscode/
+
+# ignore tests
+/tests/
