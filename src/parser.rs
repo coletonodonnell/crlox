@@ -204,7 +204,6 @@ impl Parser {
             let right: Expr = self.logic_and();
             expr = Expr::Logical{ left: Box::new(expr), operator: operator, right: Box::new(right) };
         }
-
         return expr;
     }
 
@@ -238,6 +237,15 @@ impl Parser {
         let value: Expr = self.expression();
         let _a: Option<Token> = self.consume(TokenType::Semicolon, "Expect ';' after value.".to_string());
         return Stmt::Expression{ expression: value };
+    }
+
+    fn while_statement(&mut self) -> Stmt {
+        let _ = self.consume(TokenType::LParen, "Expect '(' after 'while'.".to_string());
+        let condition: Expr = self.expression();
+        let _ = self.consume(TokenType::RParen, "Expect ')' after 'while'.".to_string());
+        let body: Stmt = self.statement();
+
+        return Stmt::While{ condition: condition, body: Box::new(body)}
     }
 
     fn if_statement(&mut self) -> Stmt {
@@ -280,6 +288,9 @@ impl Parser {
         }
         if self.match_type(vec![TokenType::Print]) {
             return self.print_statement();
+        }
+        if self.match_type(vec![TokenType::While]) {
+            return self.while_statement();
         }
         if self.match_type(vec![TokenType::LBrace]) {
             return Stmt::Block{statements: self.block()};

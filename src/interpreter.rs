@@ -13,7 +13,7 @@ impl Interpreter {
     pub fn build_interpreter(instance: crate::Lox) -> Interpreter {
         Interpreter {
             instance: instance,
-            environment: Environment::build_environment(instance, None)
+            environment: Environment::build_environment(instance, Box::new(Environment::default()))
         }
     }
 
@@ -75,14 +75,13 @@ impl Interpreter {
     }
 
     fn execute_block(&mut self, statements: Vec<Stmt>, environment: Environment) {
-        let previous: Environment = self.environment.clone();
         self.environment = environment;
 
         for statement in statements {
             self.execute(statement);
         }
 
-        self.environment = previous;
+        self.environment = *self.environment.clone().enclosing.unwrap();
     }
 }
 
@@ -120,8 +119,7 @@ impl StmtVisitor<> for Interpreter {
     }
 
     fn visit_block(&mut self, statements: Vec<Stmt>) {
-        self.execute_block(statements, Environment::build_environment(self.instance, Some(Box::new(self.environment.clone()))));
-        return
+        self.execute_block(statements, Environment::build_environment(self.instance, Box::new(self.environment.clone())));
     }
 
     fn visit_if(&mut self, condition: Expr, then_branch: Box<Stmt>, else_branch: Option<Box<Stmt>>) {
@@ -130,6 +128,12 @@ impl StmtVisitor<> for Interpreter {
             self.execute(*then_branch);
         } else if else_branch.is_some() {
             self.execute(*else_branch.unwrap());
+        }
+    }
+
+    fn visit_while(&mut self, condition: Expr, body: Box<Stmt>) {
+        while Self::is_truthy(self.visit(condition.clone()).unwrap()) {
+            self.execute(*body.clone());
         }
     }
 }
@@ -358,7 +362,7 @@ impl ExprVisitor<Literal> for Interpreter {
     }
 
     fn visit_assignment(&mut self, name: Token, value: Box<Expr>) -> Option<Literal> {
-        let literal = self.visit(*value);
+        let literal: Option<Literal> = self.visit(*value);
         self.environment.assign(name, literal.clone().unwrap());
         return literal
     }
