@@ -9,3 +9,15 @@ authors = ["Coleton O'Donnell contact@coleton.io"]
 [dependencies]
 text_io = "0.1.9"
 substring = "1.4.5"
+
+[profile.dev]
+opt-level = 0
+
+[profile.release]
+opt-level = 3
+
+# Cross Compile for Windows. I found that this wasn't fully working so I just compiled using:
+# RUSTFLAGS="-L /usr/lib" cargo build --release --target x86_64-pc-windows-gnu
+# And that worked great 
+[target.x86_64-pc-windows-gnu]
+rustc-link-search = ["/usr/lib"]
