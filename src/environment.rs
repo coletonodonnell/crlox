@@ -4,7 +4,7 @@ use std::{collections::HashMap};
 #[derive(Clone, Default, Debug)]
 pub struct Environment {
     instance: crate::Lox,
-    pub values: HashMap<String, Literal>,
+    values: HashMap<String, Literal>,
     pub enclosing: Option<Box<Environment>>
 }
 
