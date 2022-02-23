@@ -7,7 +7,7 @@ Chapters Implemented:
 - [X] Parsing Expressions
 - [X] Evaluating Expressions
 - [X] Statements and State
-- [ ] Control Flow
+- [X] Control Flow
 - [ ] Functions
 - [ ] Resolving and Binding
 - [ ] Classes
