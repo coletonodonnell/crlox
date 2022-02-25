@@ -119,20 +119,24 @@ impl Parser {
         }
     }
 
-    // comma → primary ( comma primary )*
-    fn comma(&mut self) -> Expr {
+    // call → primary ( "(" arguments? ")" )* ;
+    fn call(&mut self) -> Expr {
         let mut expr: Expr = self.primary();
 
-        while self.match_type(TokenType::Comma) {
-            let operator: Token = self.previous();
-            let right: Expr = self.primary();
-            expr = Expr::Binary {left: Box::new(expr), operator: operator, right: Box::new(right)}
+        loop {
+            if self.match_type(TokenType::LParen) {
+                if let Some(new_expr) = self.finish_call(expr.clone()) {
+                    expr = new_expr;
+                }
+            } else {
+                break;
+            }
         }
 
         return expr;
     }
 
-    // unary → ( "!" | "-" ) unary | comma 
+    // unary → ( "!" | "-" ) unary | call ;
     fn unary(&mut self) -> Expr {
         if self.match_type_vec(vec![TokenType::Bang, TokenType::Minus]) {
             let operator: Token = self.previous();
@@ -140,7 +144,7 @@ impl Parser {
             return Expr::Unary {operator: operator, right: Box::new(right)};
         }
 
-        return self.comma();
+        return self.call();
     }
 
     // factor → unary ( ( "/" | "*" ) unary )*
@@ -241,6 +245,29 @@ impl Parser {
     // expression → assignment
     fn expression(&mut self) -> Expr {
         return self.assignment();
+    }
+
+    fn finish_call(&mut self, callee: Expr) -> Option<Expr> {
+        let mut arguments = Vec::new();
+
+        if !self.check(TokenType::RParen) {
+            loop {
+                if arguments.len() >= 255 {
+                    let peak: Token = self.peek();
+                    self.error(peak, "Can't have more than 255 arguments.".to_string())
+                }
+                arguments.push(self.expression());
+                if !self.match_type(TokenType::Comma) {
+                    break;
+                }
+            }
+        }
+
+        if let Some(paren) = self.consume(TokenType::RParen, "Expect ')' after arguments.".to_string()) {
+            return Some(Expr::Call{ callee: Box::new(callee), paren: paren, arguments: arguments});
+        } else {
+            return None;
+        }
     }
 
     // Process an expression statement and return it as a new Expression Stmt.
