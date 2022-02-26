@@ -28,6 +28,11 @@ pub enum Expr {
         left: Box<Expr>,
         operator: Token,
         right: Box<Expr>
+    },
+    Call {
+        callee: Box<Expr>,
+        paren: Token,
+        arguments: Vec<Expr> 
     }
 }
 
@@ -40,7 +45,8 @@ pub trait ExprVisitor<T> {
             Expr::Unary {operator, right} => self.visit_unary(operator, right),
             Expr::Variable {token} => self.visit_variable(token),
             Expr::Assign {name, value} => self.visit_assignment(name, value),
-            Expr::Logical {left, operator, right} => self.visit_logical(left, operator, right)
+            Expr::Logical {left, operator, right} => self.visit_logical(left, operator, right),
+            Expr::Call {callee, paren, arguments} => self.visit_call(callee, paren, arguments)
         }
     }
 
@@ -51,4 +57,5 @@ pub trait ExprVisitor<T> {
     fn visit_variable(&mut self, token: Token) -> Option<T>;
     fn visit_assignment(&mut self, name: Token, value: Box<Expr>) -> Option<T>;
     fn visit_logical(&mut self, left: Box<Expr>, operator: Token, right: Box<Expr>) -> Option<T>;
+    fn visit_call(&mut self, callee: Box<Expr>, paren: Token, arguments: Vec<Expr>) -> Option<T>;
 }
